@@ -40,3 +40,6 @@ defmodule OMG.Eth.Encoding do
   @spec from_hex(<<_::16, _::_*8>>) :: binary
   def from_hex("0x" <> encoded), do: Base.decode16!(encoded, case: :lower)
 end
+
+
+#FIXME: use ExW3 ??

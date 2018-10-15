@@ -90,6 +90,7 @@ defmodule OMG.Eth do
     |> Enum.into(opts, fn {k, v} -> {k, to_hex(v)} end)
   end
 
+  #FIXME: remove
   def get_bytecode!(path_project_root, contract_name) do
     %{"evm" => %{"bytecode" => %{"object" => bytecode}}} =
       path_project_root
@@ -112,15 +113,9 @@ defmodule OMG.Eth do
     |> Base.encode16(case: :lower)
   end
 
-  def deploy_contract(addr, bytecode, types, args, opts) do
-    enc_args = encode_constructor_params(types, args)
-
-    txmap =
-      %{from: to_hex(addr), data: bytecode <> enc_args}
-      |> Map.merge(Map.new(opts))
-      |> encode_all_integer_opts()
-
-    {:ok, txhash} = Ethereumex.HttpClient.eth_send_transaction(txmap)
+  def deploy_contract(contract, addr, bytecode, args, opts) do
+     opts = opts|> Map.new() |> Map.put(:from, to_hex(addr))
+     {:ok, nil,tx_hash} = Contract.deploy(contract, bin: bytecode, options: opts) # FIXME: investigate why nil
 
     {:ok, %{"contractAddress" => contract_address, "status" => "0x1"}} =
       tx_hash

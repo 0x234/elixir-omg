@@ -31,6 +31,9 @@ defmodule OMG.EthTest do
 
   @moduletag :wrappers
 
+  #FIXME: remove this tag
+  @moduletag :eth
+
   @tag fixtures: [:geth]
   test "get_ethereum_height returns integer" do
     assert {:ok, number} = Eth.get_ethereum_height()
@@ -54,6 +57,8 @@ defmodule OMG.EthTest do
     assert {:ok, false} = Eth.RootChain.has_token(<<1::160>>, contract.contract_addr)
   end
 
+  #FIXME
+  @tag :current
   @tag fixtures: [:contract]
   test "binary/integer arguments tx and integer argument call returning a binary/integer tuple", %{contract: contract} do
     assert {:ok, _} =
