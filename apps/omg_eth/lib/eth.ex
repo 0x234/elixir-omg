@@ -30,6 +30,7 @@ defmodule OMG.Eth do
 
   import OMG.Eth.Encoding
   alias OMG.Eth.WaitFor
+  alias ExW3.Contract
 
   @type address :: <<_::160>>
 
@@ -42,6 +43,15 @@ defmodule OMG.Eth do
       other ->
         other
     end
+  end
+
+  def init_contract!(project_root_path, contract, contract_name, contract_address) do
+
+    {abi, _} = get_abi_and_bytecode!(project_root_path, contract_name)
+
+    :ok = Contract.register(contract, abi: abi)
+    :ok = Contract.at(contract, to_hex(contract_address))
+
   end
 
   def call_contract(contract, signature, args, return_types) do
@@ -113,11 +123,29 @@ defmodule OMG.Eth do
     {:ok, txhash} = Ethereumex.HttpClient.eth_send_transaction(txmap)
 
     {:ok, %{"contractAddress" => contract_address, "status" => "0x1"}} =
-      txhash
+      tx_hash
       |> from_hex()
       |> WaitFor.eth_receipt()
 
-    {:ok, from_hex(txhash), from_hex(contract_address)}
+    {:ok, from_hex(tx_hash), from_hex(contract_address)}
+  end
+
+  def get_abi_and_bytecode!(path_project_root, contract_name) do
+    %{
+      "abi" => abi_list,
+      "evm" => %{
+        "bytecode" => %{
+          "object" => bytecode
+        }
+      }
+    } =
+      path_project_root
+      |> read_contracts_json!(contract_name)
+      |> Poison.Parser.parse!()
+
+    abi = ExW3.reformat_abi(abi_list)
+
+    {abi, bytecode}
   end
 
   defp read_contracts_json!(path_project_root, contract_name) do

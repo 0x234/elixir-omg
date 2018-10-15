@@ -20,18 +20,37 @@ defmodule OMG.Eth.RootChain do
   """
 
   alias OMG.Eth
+  alias ExW3.Contract
 
   import Eth.Encoding
 
   @tx_defaults Eth.Defaults.tx_defaults()
+  @contract_name "RootChain"
 
-  @type optional_addr_t() :: <<_::160>> | nil
+  @type optional_addr_t() :: <<_ :: 160>> | nil
+
+  def register(opts \\ []) do
+    defaults = [
+      project_root_path: File.cwd!() <> "/../..",
+      contract: __MODULE__,
+      address: from_hex(Application.get_env(:omg_eth, :contract_address) || "0x00")
+    ]
+
+    %{
+      contract: contract,
+      address: address,
+      project_root_path: root_path
+    } = Keyword.merge(defaults, opts)
+        |> Map.new()
+
+    Eth.init_contract!(root_path, contract, @contract_name, address)
+
+  end
 
   @spec submit_block(binary, pos_integer, pos_integer, optional_addr_t(), optional_addr_t()) ::
           {:error, binary() | atom() | map()}
           | {:ok, binary()}
-  def submit_block(hash, nonce, gas_price, from \\ nil, contract \\ nil) do
-    contract = contract || from_hex(Application.get_env(:omg_eth, :contract_addr))
+  def submit_block(hash, nonce, gas_price, from \\ nil, contract \\ __MODULE__) do
     from = from || from_hex(Application.get_env(:omg_eth, :authority_addr))
 
     # NOTE: we're not using any defaults for opts here!
@@ -101,9 +120,12 @@ defmodule OMG.Eth.RootChain do
     Eth.contract_transact(from, contract, signature, args, opts)
   end
 
-  def create_new(path_project_root, addr, opts \\ @tx_defaults) do
-    bytecode = Eth.get_bytecode!(path_project_root, "RootChain")
-    Eth.deploy_contract(addr, bytecode, [], [], opts)
+  def create_new(project_root_path, addr, contract \\ __MODULE__, opts \\ @tx_defaults) do
+    {abi, bytecode} = Eth.get_abi_and_bytecode!(project_root_path, @contract_name)
+    Contract.register(contract, abi: abi)
+    {:ok, tx_hash, address} = Eth.deploy_contract(contract, addr, bytecode, [], opts)
+    Contract.at(contract, to_hex(address))
+    {:ok, tx_hash, address}
   end
 
   ########################

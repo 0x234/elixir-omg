@@ -28,8 +28,13 @@ defmodule OMG.Eth.Fixtures do
     :ok
   end
 
-  deffixture contract(geth) do
+  deffixture exw3 do
+    ExW3.Contract.start_link()
+  end
+
+  deffixture contract(geth, exw3) do
     :ok = geth
+    {:ok, _} = exw3
 
     Eth.DevHelpers.prepare_env!("../../")
   end
