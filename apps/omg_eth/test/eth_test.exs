@@ -55,7 +55,7 @@ defmodule OMG.EthTest do
   end
 
   @tag fixtures: [:contract]
-  test "binary/integer arugments tx and integer argument call returning a binary/integer tuple", %{contract: contract} do
+  test "binary/integer arguments tx and integer argument call returning a binary/integer tuple", %{contract: contract} do
     assert {:ok, _} =
              Eth.RootChain.submit_block(
                <<234::256>>,

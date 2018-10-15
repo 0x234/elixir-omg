@@ -47,7 +47,7 @@ defmodule OMG.Eth.RootChain do
     )
   end
 
-  def start_deposit_exit(deposit_positon, token, value, from, contract \\ nil, opts \\ nil) do
+  def start_deposit_exit(deposit_position, token, value, from, contract \\ nil, opts \\ nil) do
     opts = opts || Keyword.put_new(@tx_defaults, :gas, 1_000_000)
 
     contract = contract || from_hex(Application.get_env(:omg_eth, :contract_addr))
@@ -56,7 +56,7 @@ defmodule OMG.Eth.RootChain do
       from,
       contract,
       "startDepositExit(uint256,address,uint256)",
-      [deposit_positon, token, value],
+      [deposit_position, token, value],
       opts
     )
   end
