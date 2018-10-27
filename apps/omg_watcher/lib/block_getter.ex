@@ -141,7 +141,7 @@ defmodule OMG.Watcher.BlockGetter do
   def handle_info({_ref, {:downloaded_block, response}}, state) do
     # 1/ process the block that arrived and consume
     {continue, new_state, events} = Core.handle_downloaded_block(state, response)
-    {:ok, _} = :timer.send_after(0, self(), :producer)
+    _ = send(self(), :producer)
 
     EventerAPI.emit_events(events)
 
