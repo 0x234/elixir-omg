@@ -62,7 +62,6 @@ defmodule OMG.Watcher.BlockGetter do
 
     with :ok <- continue do
       _ = Enum.map(blocks_to_persist, &DB.Transaction.update_with/1)
-      state = run_block_download_task(state)
 
       :ok = OMG.API.State.close_block(block_rootchain_height)
 
@@ -142,6 +141,7 @@ defmodule OMG.Watcher.BlockGetter do
   def handle_info({_ref, {:downloaded_block, response}}, state) do
     # 1/ process the block that arrived and consume
     {continue, new_state, events} = Core.handle_downloaded_block(state, response)
+    {:ok, _} = :timer.send_after(0, self(), :producer)
 
     EventerAPI.emit_events(events)
 
